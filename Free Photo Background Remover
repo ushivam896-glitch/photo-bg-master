@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Photo BG Master - Free</title>
+<style>
+*{box-sizing:border-box}
+body{font-family:Arial,sans-serif;margin:0;background:#f1f5f9;color:#172033}
+header{background:#075985;color:white;text-align:center;padding:22px 10px}
+header h1{margin:0;font-size:27px}
+header p{margin-bottom:0}
+main{max-width:600px;margin:20px auto;padding:16px}
+.card{background:white;padding:20px;border-radius:16px;box-shadow:0 3px 15px #0001}
+label{display:block;font-weight:bold;margin:15px 0 8px}
+input,select,button{width:100%;padding:12px;margin-bottom:10px;border-radius:9px;border:1px solid #cbd5e1;font-size:16px}
+button{background:#0284c7;color:white;border:0;font-weight:bold;cursor:pointer}
+.colors{display:flex;flex-wrap:wrap;gap:9px}
+.color{width:43px;height:43px;border-radius:50%;border:2px solid #ddd;cursor:pointer}
+#preview{width:100%;max-height:480px;object-fit:contain;background:#e2e8f0;border-radius:10px}
+.note{font-size:13px;color:#64748b}
+footer{text-align:center;padding:20px;color:#64748b}
+</style>
+</head>
+<body>
+<header>
+<h1>📸 Photo BG Master</h1>
+<p>Free Background & Passport Photo Maker</p>
+</header>
+
+<main>
+<div class="card">
+<h2>अपनी फोटो तैयार करें</h2>
+
+<label>1. फोटो अपलोड करें</label>
+<input type="file" id="upload" accept="image/*">
+
+<label>2. बैकग्राउंड का रंग चुनें</label>
+<div class="colors">
+<button class="color" style="background:white" onclick="setColor('#ffffff')" aria-label="White"></button>
+<button class="color" style="background:#1687ff" onclick="setColor('#1687ff')" aria-label="Blue"></button>
+<button class="color" style="background:red" onclick="setColor('#ff0000')" aria-label="Red"></button>
+<button class="color" style="background:green" onclick="setColor('#008000')" aria-label="Green"></button>
+<button class="color" style="background:yellow" onclick="setColor('#ffff00')" aria-label="Yellow"></button>
+<button class="color" style="background:black" onclick="setColor('#000000')" aria-label="Black"></button>
+</div>
+<label>या अपना रंग चुनें</label>
+<input type="color" id="customColor" value="#ffffff" onchange="setColor(this.value)">
+
+<label>3. फोटो का आकार</label>
+<select id="size">
+<option value="original">मूल आकार</option>
+<option value="passport">पासपोर्ट फोटो (35 × 45 mm अनुपात)</option>
+<option value="square">स्क्वायर फोटो (1:1)</option>
+</select>
+
+<div style="background:#f1f5f9;padding:10px;border-radius:10px">
+<canvas id="canvas" style="display:none"></canvas>
+<img id="preview" alt="आपकी फोटो का प्रीव्यू">
+</div>
+
+<p class="note" id="status">पहले फोटो अपलोड करें।</p>
+<button onclick="downloadPhoto()">⬇️ फोटो डाउनलोड करें</button>
+<p class="note">नोट: यह शुरुआती संस्करण है। केवल रंग बदलने से फोटो का पुराना बैकग्राउंड अपने आप नहीं हटता।</p>
+</div>
+</main>
+<footer>Photo BG Master · Free Photo Tools</footer>
+
+<script>
+const upload=document.getElementById('upload');
+const canvas=document.getElementById('canvas');
+const ctx=canvas.getContext('2d');
+const preview=document.getElementById('preview');
+let photo=null;
+let bg='#ffffff';
+
+upload.addEventListener('change',function(){
+const file=this.files[0];
+if(!file)return;
+if(!file.type.startsWith('image/')){
+alert('कृपया सही फोटो चुनें।');return;
+}
+const reader=new FileReader();
+reader.onload=e=>{
+photo=new Image();
+photo.onload=()=>{
+document.getElementById('status').textContent='फोटो अपलोड हो गई। रंग और आकार चुनें।';
+render();
+};
+photo.src=e.target.result;
+};
+reader.readAsDataURL(file);
+});
+
+function setColor(color){
+bg=color;
+document.getElementById('customColor').value=color;
+render();
+}
+
+function render(){
+if(!photo)return;
+let w=photo.naturalWidth,h=photo.naturalHeight;
+const size=document.getElementById('size').value;
+if(size==='passport'){
+const ratio=35/45;
+if(w/h>ratio)w=Math.round(h*ratio);
+else h=Math.round(w/ratio);
+}else if(size==='square'){
+const side=Math.min(w,h);w=side;h=side;
+}
+canvas.width=w;canvas.height=h;
+ctx.fillStyle=bg;
+ctx.fillRect(0,0,w,h);
+ctx.drawImage(photo,0,0,w,h);
+preview.src=canvas.toDataURL('image/png');
+}
+
+document.getElementById('size').addEventListener('change',render);
+
+function downloadPhoto(){
+if(!photo){alert('पहले फोटो अपलोड करें।');return;}
+const link=document.createElement('a');
+link.download='photo-bg-master.png';
+link.href=canvas.toDataURL('image/png');
+link.click();
+}
+</script>
+</body>
+</html>
